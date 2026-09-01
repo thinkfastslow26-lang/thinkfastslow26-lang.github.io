@@ -23,8 +23,7 @@
     --accent-soft:rgba(124,156,255,.12);
     --radius:16px;
   }
-  @media (prefers-color-scheme:light){
-    :root{
+  :root[data-theme="light"]{
       --bg:#fcfcfd;
       --bg-soft:#f6f7f9;
       --card:#ffffff;
@@ -38,7 +37,6 @@
       --accent-2:#7c3aed;
       --accent-soft:rgba(79,70,229,.07);
     }
-  }
 
   *{box-sizing:border-box}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
@@ -261,9 +259,32 @@
   @media (prefers-reduced-motion:reduce){
     *{transition:none!important;scroll-behavior:auto!important}
   }
+
+  /* theme toggle */
+  .theme-toggle{position:fixed;top:14px;right:16px;z-index:60;
+    width:34px;height:34px;
+    display:grid;place-items:center;
+    border-radius:10px;
+    background:var(--card);
+    border:1px solid var(--border);
+    color:var(--dim);
+    cursor:pointer;
+    padding:0;
+    transition:color .2s ease,border-color .2s ease,background .2s ease;
+  }
+  .theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+  :root[data-theme="light"] .i-sun{display:none}
+  :root[data-theme="light"] .i-moon{display:block}
+  :root:not([data-theme="light"]) .i-sun{display:block}
+  :root:not([data-theme="light"]) .i-moon{display:none}
 </style>
+<script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')}catch(e){document.documentElement.setAttribute('data-theme','dark')}</script>
 </head>
 <body>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色">
+  <svg class="i-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+  <svg class="i-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+</button>
 <main>
 
   <span class="eyebrow">技术笔记</span>
@@ -318,5 +339,16 @@
   </footer>
 
 </main>
+<script>
+  (function(){
+    var b=document.getElementById('themeToggle');
+    if(!b)return;
+    b.addEventListener('click',function(){
+      var next=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';
+      document.documentElement.setAttribute('data-theme',next);
+      try{localStorage.setItem('theme',next)}catch(e){}
+    });
+  })();
+</script>
 </body>
 </html>
