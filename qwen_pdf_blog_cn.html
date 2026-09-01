@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>让本地 Qwen 真正读懂 PDF：Open WebUI、Docling 和 opencode 实战</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --text:#1f2328;
+    --muted:#667085;
+    --border:#d0d7de;
+    --code-bg:#f6f8fa;
+    --quote:#57606a;
+    --accent:#0969da;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC","Source Han Sans SC",Arial,sans-serif;
+    line-height:1.85;
+    font-size:17px;
+    letter-spacing:.01em;
+  }
+  main{
+    max-width:860px;
+    margin:0 auto;
+    padding:56px 24px 80px;
+  }
+  h1{
+    font-size:2.15rem;
+    line-height:1.28;
+    margin:0 0 2rem;
+    letter-spacing:-.02em;
+  }
+  h2{
+    font-size:1.45rem;
+    line-height:1.4;
+    margin:2.6rem 0 1rem;
+    padding-bottom:.35rem;
+    border-bottom:1px solid var(--border);
+  }
+  p{margin:1rem 0}
+  strong{font-weight:700}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    font-size:.92em;
+  }
+  pre{
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:16px 18px;
+    overflow:auto;
+    line-height:1.55;
+    margin:1.25rem 0;
+  }
+  pre code{font-size:.88rem}
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin:1.35rem 0;
+    font-size:.96rem;
+  }
+  th,td{
+    border:1px solid var(--border);
+    padding:10px 12px;
+    text-align:left;
+    vertical-align:top;
+  }
+  th{background:#f8fafc}
+  ul{padding-left:1.4rem}
+  li{margin:.35rem 0}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .note{
+    color:var(--muted);
+    font-size:.94rem;
+  }
+  @media (max-width:640px){
+    body{font-size:16px}
+    main{padding:32px 18px 56px}
+    h1{font-size:1.8rem}
+    h2{font-size:1.28rem}
+  }
+</style>
+</head>
+<body>
+<main>
+<h1>让本地 Qwen 真正读懂 PDF：Open WebUI、Docling 和 opencode 实战</h1>
+
+<p>最近在本地用 vLLM 跑 Qwen3.8-27B，顺便把 PDF 处理这件事认真折腾了一遍。</p>
+
+<p>一开始我以为这应该很简单。Qwen3.8-27B 本身支持视觉输入，图片、图表都能看，PDF 理论上也不该是什么大问题。但实际用下来会发现，“支持视觉”和“能完整读取 PDF”中间隔着很长的一条处理链。</p>
+
+<p>在 Open WebUI 里上传 PDF 后，模型通常拿到的是解析器提取出来的文字。普通 PDF 问题不大，一旦碰到扫描件、复杂表格或者图表，情况就开始变得不可控。扫描件如果 OCR 没有正常工作，可能一个字都提取不到；图表即使被检测出来，也不代表模型真的看到了图。在 opencode 里情况更直接，它本身无法把 PDF 作为多模态输入送进 Qwen。</p>
+
+<p>最后我采用了两套方案。Open WebUI 这边用 Docling 负责文档解析、OCR 和表格，再调用已经运行的 Qwen 给图表生成描述，解析结果用于后续检索增强生成（RAG）。opencode 则加了一个 PDF 工具，普通页面直接提取文字，遇到图表、示意图和扫描页才渲染成图片交给 Qwen。</p>
+
+<p>这套方法没有什么神奇的地方，但实际效果比“把整份 PDF 都送进视觉模型”好很多，速度也快得多。中间还有几个挺容易踩的坑，值得记录下来。</p>
+
+<h2>先确认 Open WebUI 的 OCR 到底有没有工作</h2>
+
+<p>Open WebUI 的文档设置里有一个 PDF 图片文字识别（PDF Extract Images / OCR）开关。看到这个开关，很容易默认 OCR 已经准备好了，其实还是应该进容器确认一下。</p>
+
+<p>这里还牵涉到软件版本。旧版 Open WebUI 和 LangChain 使用的包名是 <code>rapidocr_onnxruntime</code>，现在的 LangChain 使用 <code>rapidocr</code>。网上不少老教程仍然只检查前一个名字，很容易得出错误结论。</p>
+
+<p>我现在直接这样检查：</p>
+
+<pre><code>docker exec open-webui python3 -c "
+import importlib
+for m in ('rapidocr','rapidocr_onnxruntime','pytesseract'):
+    try:
+        importlib.import_module(m); print(f'{m}: IMPORTABLE')
+    except Exception: print(f'{m}: absent')"</code></pre>
+
+<p>较新的 Open WebUI 镜像通常已经带有 <code>rapidocr</code> 和相应模型，这种情况下 OCR 开关确实能工作。老版本则未必。</p>
+
+<p>这里最麻烦的是失败方式。如果容器里没有可用的 OCR 引擎，扫描 PDF 可能直接提取出零文字，同时不给出明显警告。后面的语言模型依然可以正常运行，于是从用户角度看，文件上传成功了、聊天也正常，只是模型其实没有读到文档。</p>
+
+<p>所以我现在处理重要 PDF 时，会先确认 OCR 环境，再讨论模型回答得好不好。</p>
+
+<p>即使 OCR 完全正常，它的职责也主要是识别图片里的文字。例如一张柱状图，它可以读出标题、坐标数字或者图例里的字符，但图形结构、数据之间的关系以及图表整体表达的内容，仍然需要视觉模型参与。</p>
+
+<h2>用 Docling 接管 PDF 解析</h2>
+
+<p>Open WebUI 这一侧，我最后换成了 IBM 的 Docling。</p>
+
+<p>Docling 比较适合这类工作，因为它会按照文档内容选择不同的处理方式。普通文字直接提取，扫描内容做 OCR，表格使用专门的结构识别模型，图片和图表则可以单独交给视觉模型。</p>
+
+<p>对于财报、论文一类文档，这种分工尤其重要。表格本身有明确结构，让专门的表格模型处理，通常比把整页截图交给一个大视觉模型重新识别更经济。</p>
+
+<p>如果显卡已经拿来跑 Qwen，我建议 Docling 使用 CPU 版本：</p>
+
+<pre><code>services:
+  docling:
+    image: ghcr.io/docling-project/docling-serve-cpu:v1.31.0
+    container_name: docling
+    restart: unless-stopped
+    networks:
+      - docling_internal
+    environment:
+      - DOCLING_SERVE_ENABLE_REMOTE_SERVICES=true
+      - DOCLING_SERVE_MAX_SYNC_WAIT=3600
+      - ORT_DISABLE_TELEMETRY=1
+
+networks:
+  docling_internal:
+    internal: true</code></pre>
+
+<p>这里最好固定一个兼容的 <code>v1.x</code> 版本。旧版 Docling 的接口路径使用 <code>/v1alpha/</code>，而 Open WebUI 会调用 <code>/v1/convert/file</code>。如果版本不对，Docling 容器本身可能一直显示运行正常，但每次文档转换都会失败。</p>
+
+<p>可以直接验证接口：</p>
+
+<pre><code>docker exec open-webui sh -c \
+"curl -s http://docling:5001/openapi.json | grep -c '/v1/convert/file'"</code></pre>
+
+<p>返回值应该至少是 <code>1</code>。</p>
+
+<p>我没有给 Docling 配置 <code>ports:</code>。它本身没有身份认证，Open WebUI 又可以通过 Docker 内部网络直接访问 <code>http://docling:5001</code>，所以没有必要把端口开放给外部网络。</p>
+
+<p>同样出于这个原因，我把 Docling 所在网络设成了 <code>internal: true</code>。这件事后面还有一个额外的好处。</p>
+
+<h2>Open WebUI 的持久化配置容易让人浪费时间</h2>
+
+<p>接下来是一个很容易误判的问题。</p>
+
+<p>如果在 Docker 环境变量里加入：</p>
+
+<pre><code>CONTENT_EXTRACTION_ENGINE=docling</code></pre>
+
+<p>对于已经运行过的 Open WebUI，它未必会按照新的环境变量工作。</p>
+
+<p>Open WebUI 的文档设置使用持久化配置（PersistentConfig），配置值保存在 SQLite 数据库的 <code>config</code> 表中。已有安装里的数据库值优先级更高，所以后来修改环境变量，界面里的实际设置可能一点没变。</p>
+
+<p>我最后直接从管理界面设置：</p>
+
+<p><strong>管理设置 → 文档（Admin Settings → Documents）</strong></p>
+
+<p>把内容提取引擎（Content Extraction Engine）改成 <code>Docling</code>，服务器地址（Docling Server URL）填：</p>
+
+<pre><code>http://docling:5001</code></pre>
+
+<p>保存以后不需要重新启动。</p>
+
+<p>如果想彻底确认，可以直接查数据库：</p>
+
+<pre><code>docker exec open-webui python3 -c "
+import sqlite3
+c = sqlite3.connect('/app/backend/data/webui.db')
+for k in ('rag.content_extraction_engine','rag.docling_server_url'):
+    print(k, c.execute('select value from config where key=?',(k,)).fetchone()[0])"</code></pre>
+
+<p>做到这里以后，普通文字、扫描件和表格基本都已经能处理。不过文档里的图表还没有真正进入模型，解析结果里经常只是一个 <code>&lt;!-- image --&gt;</code> 标记。</p>
+
+<h2>把图表交给已经运行的 Qwen</h2>
+
+<p>Docling 支持图片描述（Picture Description）。检测到图片以后，它可以调用一个视觉语言模型（VLM），让模型生成图像描述，再把这段描述插入最终的 Markdown。</p>
+
+<p>我机器上本来就已经运行着 Qwen3.8-27B，所以直接让 Docling 调用现有的 vLLM 接口即可。</p>
+
+<p>整体流程大概是这样：</p>
+
+<pre><code>PDF
+ │
+ ▼
+Docling
+ │
+ ├── 普通文字 → 直接提取
+ │
+ ├── 表格     → 表格结构模型
+ │
+ ├── 扫描页   → OCR
+ │
+ └── 图片     → Qwen3.8-27B → 图片描述
+                               │
+                               ▼
+                            Markdown
+                               │
+                               ▼
+                              RAG</code></pre>
+
+<p>因为 Docling 在内部 Docker 网络中，vLLM 服务也需要加入这个网络：</p>
+
+<pre><code>vllm-server:
+  networks:
+    - default
+    - docling_internal</code></pre>
+
+<p>运行中的容器可以临时连接：</p>
+
+<pre><code>docker network connect docling_internal vllm-server</code></pre>
+
+<p>不过最好同时写入 Docker Compose 配置。否则下次重新创建容器以后，这条网络连接会消失。</p>
+
+<p>Docling 在这里还有一个值得注意的行为：如果视觉模型无法访问，文档解析依然可能返回成功，普通文字照常存在，只是图片描述没有生成。测试时最好故意断一次连接，确认自己知道这个失败状态长什么样。</p>
+
+<h2>图片描述参数怎么设</h2>
+
+<p>Open WebUI 的 <strong>管理设置 → 文档 → Docling 参数（Docling Params）</strong> 可以直接向 Docling 传参数。我现在使用类似下面的配置：</p>
+
+<pre><code>{
+  "do_picture_description": "true",
+  "picture_description_area_threshold": "0.01",
+  "picture_description_api": "{\"url\": \"http://vllm-server:8000/v1/chat/completions\", \"params\": {\"model\": \"&lt;YOUR_MODEL_ID&gt;\", \"max_completion_tokens\": 1500, \"temperature\": 0, \"chat_template_kwargs\": {\"enable_thinking\": false}}, \"prompt\": \"Describe this figure for a reader who cannot see it. If it is a chart, state the chart type, the title, the axis labels, and list every data point with its exact value. Be concise and factual.\", \"timeout\": 600, \"concurrency\": 4}"
+}</code></pre>
+
+<p>这里有个比较别扭的设计：<code>picture_description_api</code> 要写成 JSON 字符串，不能直接使用嵌套 JSON 对象。Open WebUI 会把这些参数作为表单字段传给 Docling，所以里面的 JSON 需要先转义。</p>
+
+<p><code>picture_description_area_threshold</code> 控制图片面积至少占页面多少比例以后才送去模型。我现在设成 <code>0.01</code>，也就是页面面积的 1%，这样较小的子图也不会轻易漏掉。如果文档里有大量 logo、图标和装饰图片，可以提高到 <code>0.05</code>，减少没有价值的视觉调用。</p>
+
+<h2>Qwen 的思考模式在这里反而会制造问题</h2>
+
+<p>这里是我花时间最多的一个坑。</p>
+
+<p>如果 Qwen 开启思考模式（Thinking Mode），有时会看到这样的返回：</p>
+
+<pre><code>reasoning_content = 很多内容
+content = ""</code></pre>
+
+<p>模型把输出令牌预算消耗在推理内容上，真正应该返回给 Docling 的正文反而成了空字符串。Docling 收到空描述以后仍然可以把整个转换标记为成功，于是表面上什么都没有坏，实际那张图已经从解析结果里消失了。</p>
+
+<p>解决方法很简单：</p>
+
+<pre><code>"chat_template_kwargs": {
+  "enable_thinking": false
+}</code></pre>
+
+<p>我在同一张单页图表上各跑了三次：</p>
+
+<table>
+<thead>
+<tr><th>配置</th><th>完整捕获所有数据</th><th>平均时间</th></tr>
+</thead>
+<tbody>
+<tr><td>400 个输出令牌，开启思考</td><td>0 / 3</td><td>15.3 秒</td></tr>
+<tr><td>1500 个输出令牌，关闭思考</td><td>3 / 3</td><td>7.3 秒</td></tr>
+</tbody>
+</table>
+
+<p>这个任务本身也不太需要复杂推理。模型的工作是看清图表，然后尽可能准确地描述内容。关闭思考以后，在我的测试里反而更稳定，也明显更快。</p>
+
+<p>输出令牌我最终留到了大约 1500。复杂的多子图很容易生成较长描述，预算过小时，描述经常会在中途被截断。</p>
+
+<h2>默认 120 秒超时很快就会碰到</h2>
+
+<p>Docling 的同步转换接口默认最大等待时间是 120 秒。只处理文字时很少会遇到问题，但图片描述会为每张图增加一次视觉模型调用，几十页的论文很快就会超过两分钟。</p>
+
+<p>典型报错是：</p>
+
+<pre><code>Error calling Docling API: Gateway Timeout - Conversion is taking too long.
+The maximum wait time is configure as DOCLING_SERVE_MAX_SYNC_WAIT=120.</code></pre>
+
+<p>所以我把 <code>DOCLING_SERVE_MAX_SYNC_WAIT</code> 直接提高到 <code>3600</code>。</p>
+
+<p>同时还需要：</p>
+
+<pre><code>DOCLING_SERVE_ENABLE_REMOTE_SERVICES=true</code></pre>
+
+<p>Docling 默认不允许处理流程调用远程服务。这里的“远程服务”就是本机另一容器里的 vLLM 接口。</p>
+
+<p>前面把 Docling 放进 <code>internal: true</code> 网络以后，这项设置也比较干净：Docling 可以访问自己的模型服务器，但无法通过这个网络访问互联网。</p>
+
+<h2>意外发现：ONNX Runtime 的遥测连接</h2>
+
+<p>检查容器网络的时候，我还碰到一个之前没注意过的问题。</p>
+
+<p>Docling 会使用 RapidOCR，而 RapidOCR 的推理后端会用到 ONNX Runtime。最近版本的官方 ONNX Runtime Linux 构建在创建推理会话（InferenceSession）以后，会连接到：</p>
+
+<pre><code>*.events.data.microsoft.com</code></pre>
+
+<p>这个行为不依赖 Docling，可以单独复现：</p>
+
+<pre><code>import onnxruntime as ort
+
+ort.InferenceSession(
+    "any_model.onnx",
+    providers=["CPUExecutionProvider"]
+)</code></pre>
+
+<p>然后从 <code>/proc/net/tcp</code> 里查看建立的 HTTPS 连接。如果希望进一步确认目标，可以检查服务器证书：</p>
+
+<pre><code>echo | openssl s_client -connect &lt;IP&gt;:443 2&gt;/dev/null \
+| openssl x509 -noout -subject</code></pre>
+
+<p>我测试时拿到的证书信息包括：</p>
+
+<pre><code>O=Microsoft Corporation
+CN=*.events.data.microsoft.com</code></pre>
+
+<p>ONNX Runtime 的官方隐私文档目前也明确写明，Linux、macOS、Android 和 iOS 上的官方构建会使用跨平台 1DS 遥测组件，通过 HTTPS 向微软的遥测后端发送跟踪事件（trace events）。</p>
+
+<p>官方提供的关闭方式是：</p>
+
+<pre><code>ORT_DISABLE_TELEMETRY=1</code></pre>
+
+<p>文档还说明，关闭以后上传程序、事件以及持久化设备标识符（persistent device identifier）都不会在该进程生命周期内创建。</p>
+
+<p>我自己的测试里也看到了明显的版本差异。ONNX Runtime 1.29.0 创建会话以后很快出现连接；1.26.0 在 25 秒观察窗口里没有出现连接。这意味着网上流传较广的“ONNX Runtime 遥测只存在于 Windows”已经不能直接套用到所有新版本。</p>
+
+<p>这里也需要控制结论范围。HTTPS 内容是加密的，我能够确认连接目标，也能确认官方文档描述的遥测机制和持久化设备标识符，但无法仅凭外部网络观察判断具体上传了哪些字段。</p>
+
+<p>我的处理方式是给所有使用 ONNX Runtime 的相关容器都设置：</p>
+
+<pre><code>environment:
+  - ORT_DISABLE_TELEMETRY=1</code></pre>
+
+<p>可以用下面的命令检查某个容器是否安装了 ONNX Runtime：</p>
+
+<pre><code>docker exec &lt;container&gt; python3 -c "
+import importlib.metadata as md
+try: print(md.version('onnxruntime'))
+except Exception: print('not installed')"</code></pre>
+
+<p>网络层仍然保留 <code>internal: true</code>，相当于再加一道限制。可以这样验证 Docling 无法访问公网：</p>
+
+<pre><code>docker exec docling sh -c \
+"curl -sS -m 8 -o /dev/null -w '%{http_code}\n' https://example.com/"</code></pre>
+
+<p>正常情况下应该返回：</p>
+
+<pre><code>000</code></pre>
+
+<p>环境变量和网络隔离一起使用，我会更放心。</p>
+
+<h2>为什么没有把每一页都交给视觉模型</h2>
+
+<p>Docling 也支持完整的视觉语言模型处理流程（VLM Pipeline），做法很直接：把整个 PDF 页面渲染成图片，全部交给视觉模型生成 Markdown。</p>
+
+<p>功能上没有问题，图表也能读。但我实际跑了一遍以后，很快放弃了这条路线。</p>
+
+<p>同一份 6 页 PDF，其中 2 页包含图表：</p>
+
+<table>
+<thead>
+<tr><th>方案</th><th>时间</th><th>能否读取图表</th></tr>
+</thead>
+<tbody>
+<tr><td>标准处理流程</td><td>4 秒</td><td>否</td></tr>
+<tr><td>标准流程 + 图片描述</td><td><strong>14 秒</strong></td><td>是</td></tr>
+<tr><td>全视觉流程，并发 1</td><td>78 秒</td><td>是</td></tr>
+<tr><td>全视觉流程，并发 4</td><td>38 秒</td><td>是</td></tr>
+</tbody>
+</table>
+
+<p>标准流程加图片描述用了 14 秒。最快的全视觉流程用了 38 秒。</p>
+
+<p>表格方面，我另外拿一张干净的 7 行财务表做过测试，两种方案都正确读取了全部 35 个数字。这个小测试至少没有显示出全视觉方案带来额外质量收益。</p>
+
+<p>在这种情况下，我更愿意让 PDF 文字解析器处理文字，让表格模型处理表格，让 OCR 处理扫描文字，视觉模型只处理真正需要视觉理解的内容。27B 模型的计算量应该花在传统解析工具不擅长的地方。</p>
+
+<p>Docling 还有一个 <code>do_chart_extraction: true</code> 选项，可以专门把柱状图、饼图和折线图转换成结构化数据。不过这条路径需要额外的视觉模型。既然现有的 Qwen 已经常驻显卡，我最终没有再增加一套模型。</p>
+
+<h2>实际跑一篇 57 页论文</h2>
+
+<p>最后我用一篇 57 页、约 20 MB 的论文做完整测试，Docling 一共检测出 49 张图片。</p>
+
+<p>整份文档处理时间大约 7 分钟，49 张图片全部生成了描述，最终提取文本约 30.8 万字符。整个过程中 vLLM 服务保持正常，显卡空闲显存基本没有变化，也没有出现显存溢出（OOM）。</p>
+
+<p>图片描述的质量已经可以用于后续检索。例如其中一个主成分分析（PCA）子图，模型读出了：</p>
+
+<pre><code>X-axis: "PC1 (43.5% variance)"</code></pre>
+
+<p>同时识别了两个数据簇的位置以及六个载荷向量（loading vectors）的名称。</p>
+
+<p>这里最大的实际问题反而变成了请求时间。7 分钟是一个非常长的同步 HTTP 请求，测试时一定要从真实浏览器完整上传一次。浏览器、反向代理或者其他中间层可能有自己的超时设置，用 curl 或 Python 脚本成功并不能保证网页端也能撑到处理结束。</p>
+
+<p>图片描述并发数我目前设成 <code>4</code>，相对保守。继续提高并发，接近 vLLM 的 <code>--max-num-seqs</code> 上限，可以明显缩短总处理时间，不过显卡如果已经接近满载，过高的并发也可能导致显存溢出，把整个模型服务一起拖掉。这个参数没有统一答案，只能根据自己的机器实测。</p>
+
+<h2>opencode：只把真正需要看的页面变成图片</h2>
+
+<p>Open WebUI 解决的是文档导入和长期检索，opencode 的使用场景稍微不同。</p>
+
+<p>Qwen 可以接受图片，但 opencode 无法直接把 PDF 当作图片输入给模型。最简单的方案是把 PDF 的每一页都渲染成 PNG，然后交给 Qwen。实际使用中，这样做很浪费。</p>
+
+<p>一份 57 页的 PDF，大部分页面可能只有普通文字。文字本来可以很便宜地直接提取，如果先渲染成高分辨率图片，再让 27B 视觉模型重新识别一遍，会消耗更多计算和上下文，效果也未必更好。</p>
+
+<p>所以我给 opencode 加了一个 PDF 工具。它先检查每一页的内容，大致分成文字、表格、图表或示意图、图片较多页面和扫描页。只有确实需要视觉理解的页面才渲染成图片。</p>
+
+<p>工具提供四个操作：</p>
+
+<pre><code>info
+text
+render
+ocr</code></pre>
+
+<p>拿到一个新 PDF 时，第一步调用 <code>info</code>。它返回页数、标题、目录、每页类型以及哪些页面建议使用视觉模型。例如：</p>
+
+<pre><code>第 1 页：文字
+第 2 页：文字
+第 3 页：表格
+第 4 页：图表或示意图
+第 5 页：文字
+第 6 页：扫描页</code></pre>
+
+<p>这样一份几十页的文档，最后可能只有三四页需要真正渲染给 Qwen。</p>
+
+<p>页面分类用 PyMuPDF 就能做一个相当实用的版本：</p>
+
+<pre><code>import fitz
+
+def classify(page):
+    text = page.get_text().strip()
+    images = page.get_images(full=True)
+    drawings = len(page.get_drawings())
+
+    if len(text) &lt; 50 and images:
+        return "SCAN"
+
+    if drawings &gt; 40 or images:
+        return "CHART_OR_DIAGRAM"
+
+    if page.find_tables().tables:
+        return "TABLE"
+
+    return "TEXT"</code></pre>
+
+<p>需要视觉模型时再渲染：</p>
+
+<pre><code>def render(doc, pages, dpi=150, outdir="/tmp/pdf_pages"):
+    paths = []
+
+    for i in pages:
+        pix = doc[i].get_pixmap(dpi=dpi)
+        p = f"{outdir}/p{i+1:03d}.png"
+        pix.save(p)
+        paths.append(p)
+
+    return paths</code></pre>
+
+<p>另外我让工具输出保留页码，例如 <code>[p. 12]</code>。这样模型引用某个结论时，可以回到原始 PDF 对照第 12 页，至少能比较方便地验证结果。</p>
+
+<p>已经渲染过的页面则按 PDF 文件哈希值缓存，后面继续问同一份文档时不必重新生成图片。</p>
+
+<h2>最后形成的使用方式</h2>
+
+<p>现在我的 Open WebUI 和 opencode 分工比较明确。</p>
+
+<p>Open WebUI + Docling 用来处理“上传一份文档，以后长期搜索和提问”的场景。PDF 在导入时完成文字提取、OCR、表格解析和图片描述，之后这些内容进入 RAG。聊天时模型读取的是已经处理好的文档内容，其中图片部分主要以文字描述的形式存在。</p>
+
+<p>opencode 更适合临时检查某个具体页面。例如要求模型仔细看第 17 页的图表，工具会把那一页实际渲染成 PNG，再把像素交给 Qwen。这种方式可以验证 Docling 的图片描述，也适合处理某些解析错误的复杂表格。</p>
+
+<p>折腾完这套流程以后，我现在处理 PDF 的习惯很固定：普通文字直接提取，表格使用结构化解析，扫描文字交给 OCR，图表和示意图才调用视觉模型。</p>
+
+<p>大型视觉模型很有用，但没必要让它重新完成所有传统文档工具已经做得很好的工作。</p>
+
+<p>对于本地 PDF 系统，模型能力当然重要，模型之前的那条处理链同样值得认真检查。很多看起来像“模型没读懂”的问题，往往在模型收到上下文以前就已经发生了。</p>
+</main>
+</body>
+</html>
