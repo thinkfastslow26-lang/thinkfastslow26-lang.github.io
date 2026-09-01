@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="本地大模型、自托管服务，以及踩过的坑。">
+<meta name="author" content="thinkfastslow">
+<title>技术笔记 · thinkfastslow</title>
+<style>
+  :root{
+    --bg:#0a0b0e;
+    --bg-soft:#0f1115;
+    --card:#12141a;
+    --card-hover:#161923;
+    --text:#e8eaf0;
+    --dim:#8b94a7;
+    --dimmer:#5f6878;
+    --border:#20242e;
+    --border-soft:#1a1d25;
+    --accent:#7c9cff;
+    --accent-2:#a78bfa;
+    --accent-soft:rgba(124,156,255,.12);
+    --radius:16px;
+  }
+  @media (prefers-color-scheme:light){
+    :root{
+      --bg:#fcfcfd;
+      --bg-soft:#f6f7f9;
+      --card:#ffffff;
+      --card-hover:#fbfcfe;
+      --text:#12141a;
+      --dim:#5b6472;
+      --dimmer:#8892a0;
+      --border:#e5e8ee;
+      --border-soft:#eef0f4;
+      --accent:#4f46e5;
+      --accent-2:#7c3aed;
+      --accent-soft:rgba(79,70,229,.07);
+    }
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC","Source Han Sans SC",sans-serif;
+    font-size:17px;
+    line-height:1.8;
+    letter-spacing:.01em;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ambient glow, purely decorative */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:-30% 0 auto 0;
+    height:60vh;
+    background:radial-gradient(60% 60% at 50% 0%,var(--accent-soft),transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  main{
+    position:relative;
+    z-index:1;
+    max-width:780px;
+    margin:0 auto;
+    padding:clamp(56px,11vw,116px) 22px 96px;
+  }
+
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+    font-size:.78rem;
+    font-weight:600;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--dim);
+    padding:.34rem .7rem;
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:var(--bg-soft);
+    margin-bottom:1.5rem;
+  }
+  .eyebrow::before{
+    content:"";
+    width:6px;height:6px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    box-shadow:0 0 10px var(--accent);
+  }
+
+  h1{
+    font-size:clamp(2.1rem,6vw,3.15rem);
+    line-height:1.14;
+    font-weight:800;
+    letter-spacing:-.035em;
+    margin:0 0 .7rem;
+    background:linear-gradient(150deg,var(--text) 30%,var(--accent) 130%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-wrap:balance;
+  }
+  .tagline{
+    color:var(--dim);
+    font-size:1.06rem;
+    margin:0 0 1.6rem;
+    max-width:38ch;
+    text-wrap:pretty;
+  }
+
+  .byline{
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+    font-size:.92rem;
+    color:var(--dim);
+    margin:0 0 clamp(2.6rem,6vw,4rem);
+  }
+  .byline strong{color:var(--text);font-weight:600}
+  .avatar{
+    display:grid;
+    place-items:center;
+    width:30px;height:30px;
+    border-radius:50%;
+    font-size:.8rem;
+    font-weight:700;
+    color:#fff;
+    letter-spacing:0;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    box-shadow:0 0 0 1px var(--border), 0 2px 10px -2px var(--accent);
+  }
+
+  .section-label{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+    font-size:.8rem;
+    font-weight:600;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--dimmer);
+    margin:0 0 1.5rem;
+  }
+  .section-label::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:linear-gradient(90deg,var(--border),transparent);
+  }
+
+  ul.posts{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+
+  .card{
+    position:relative;
+    display:block;
+    padding:26px 26px 24px;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    background:var(--card);
+    text-decoration:none;
+    color:inherit;
+    transition:border-color .22s ease,background .22s ease,transform .22s ease;
+    overflow:hidden;
+  }
+  /* accent rail that grows on hover */
+  .card::before{
+    content:"";
+    position:absolute;
+    left:0;top:0;bottom:0;
+    width:2px;
+    background:linear-gradient(180deg,var(--accent),var(--accent-2));
+    transform:scaleY(0);
+    transform-origin:top;
+    transition:transform .28s cubic-bezier(.22,1,.36,1);
+  }
+  .card:hover{
+    border-color:color-mix(in srgb,var(--accent) 42%,var(--border));
+    background:var(--card-hover);
+    transform:translateY(-2px);
+  }
+  .card:hover::before{transform:scaleY(1)}
+  .card:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:3px;
+  }
+
+  .meta{
+    display:flex;
+    align-items:center;
+    gap:.7rem;
+    font-size:.83rem;
+    color:var(--dimmer);
+    font-variant-numeric:tabular-nums;
+    margin-bottom:.55rem;
+  }
+  .dot{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.6}
+
+  .post-title{
+    font-size:1.24rem;
+    font-weight:700;
+    line-height:1.45;
+    letter-spacing:-.015em;
+    margin:0 0 .5rem;
+    text-wrap:pretty;
+  }
+  .card:hover .post-title{color:var(--accent)}
+
+  .post-summary{
+    margin:0;
+    color:var(--dim);
+    font-size:.95rem;
+    line-height:1.75;
+    text-wrap:pretty;
+  }
+
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem}
+  .tag{
+    font-size:.74rem;
+    font-weight:500;
+    letter-spacing:.02em;
+    color:var(--dim);
+    padding:.2rem .55rem;
+    border:1px solid var(--border-soft);
+    border-radius:6px;
+    background:var(--bg-soft);
+  }
+
+  .arrow{
+    position:absolute;
+    right:24px;top:26px;
+    color:var(--dimmer);
+    transition:transform .24s ease,color .24s ease;
+  }
+  .card:hover .arrow{transform:translateX(3px);color:var(--accent)}
+
+  footer{
+    margin-top:clamp(3.5rem,8vw,5.5rem);
+    padding-top:1.4rem;
+    border-top:1px solid var(--border-soft);
+    color:var(--dimmer);
+    font-size:.86rem;
+  }
+  footer p{margin:.3rem 0}
+  a{color:var(--accent);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  ::selection{background:var(--accent);color:#fff}
+
+  @media (max-width:640px){
+    body{font-size:16px}
+    main{padding:52px 18px 64px}
+    .card{padding:22px 20px}
+    .arrow{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;scroll-behavior:auto!important}
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <span class="eyebrow">技术笔记</span>
+
+  <h1>本地大模型<br>与自托管实践</h1>
+  <p class="tagline">记录自己动手搭的东西，以及过程中踩到的坑。</p>
+
+  <p class="byline">
+    <span class="avatar" aria-hidden="true">T</span>
+    <span>作者 <strong>thinkfastslow</strong></span>
+  </p>
+
+  <h2 class="section-label">文章</h2>
+
+  <ul class="posts">
+    <!-- 新文章加在这个列表最上面，复制一个 <li> 改内容即可 -->
+
+    <li>
+      <a class="card" href="qwen_pdf_blog_cn.html">
+        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+        <div class="meta">
+          <span>thinkfastslow</span>
+          <span class="dot"></span>
+          <time datetime="2026-09-01">2026 年 9 月 1 日</time>
+          <span class="dot"></span>
+          <span>约 12 分钟</span>
+        </div>
+        <h3 class="post-title">让本地 Qwen 真正读懂 PDF：Open WebUI、Docling 和 opencode 实战</h3>
+        <p class="post-summary">
+          用 Docling 接管 Open WebUI 的 PDF 解析和 OCR，把图表交给已经在跑的 Qwen 生成描述，
+          再给 opencode 加一个按需把页面渲染成图片的 PDF 工具。顺带记录几个容易踩的坑：
+          持久化配置、推理模式导致描述为空、120 秒同步超时，以及 ONNX Runtime 的遥测连接。
+        </p>
+        <div class="tags">
+          <span class="tag">Qwen</span>
+          <span class="tag">Open WebUI</span>
+          <span class="tag">Docling</span>
+          <span class="tag">opencode</span>
+          <span class="tag">vLLM</span>
+        </div>
+      </a>
+    </li>
+
+  </ul>
+
+  <footer>
+    <p>© 2026 thinkfastslow</p>
+    <p>纯静态 HTML，无外部依赖，托管在 GitHub Pages。</p>
+  </footer>
+
+</main>
+</body>
+</html>
