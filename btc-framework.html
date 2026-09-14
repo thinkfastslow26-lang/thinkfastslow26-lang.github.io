@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BTC：0.57% 和 5% 之间 — thinkfastslow</title>
+<meta name="author" content="thinkfastslow">
+<meta name="description" content="把比特币的全部长期预测压缩成一个变量：它占全球金融财富的份额 S。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ECEDE7;
+  --paper-deep:#E3E5DD;
+  --ink:#1B1E1A;
+  --ink-mid:#4A4F46;
+  --ink-soft:#6E7468;
+  --rule:#C8CBBF;
+  --rule-soft:#D8DACF;
+  --gold:#8A6B2C;
+  --gold-wash:#C7A96622;
+  --btc:#2C5162;
+  --btc-wash:#2C516222;
+  --oxblood:#7A2E2A;
+  /* Latin and CJK are set separately: digits and tickers get a real text face,
+     CJK falls through to the best available local font — never to SimSun. */
+  --latin-serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --latin-sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --cjk-song:"Noto Serif SC","Source Han Serif SC","Songti SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --cjk-hei:"Noto Sans SC","Source Han Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --cjk-kai:"LXGW WenKai Screen","LXGW WenKai","Kaiti SC",STKaiti,"Noto Serif SC","Songti SC","PingFang SC",sans-serif;
+  --serif:var(--latin-serif),var(--cjk-song);
+  --sans:var(--cjk-hei);
+  --col:41rem;
+  --wide:54rem;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--serif);
+  font-size:18.5px;
+  line-height:1.88;
+  letter-spacing:.012em;
+  font-feature-settings:"kern" 1;
+  font-variant-numeric:oldstyle-nums;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* switchable body face: 宋 / 黑 / 楷 */
+body[data-face="hei"]{--serif:var(--latin-sans),var(--cjk-hei);font-size:17.5px;line-height:1.9}
+body[data-face="hei"] h1,body[data-face="hei"] h2{font-family:var(--latin-serif),var(--cjk-song)}
+body[data-face="kai"]{--serif:var(--latin-serif),var(--cjk-kai);font-size:19.5px;line-height:1.9}
+
+.wrap{max-width:var(--wide);margin:0 auto;padding:0 1.5rem}
+.col{max-width:var(--col);margin:0 auto}
+
+/* ---------- masthead ---------- */
+header.mast{padding:4.5rem 0 0}
+.byline{
+  font-family:var(--sans);
+  font-size:.82rem;
+  line-height:1.6;
+  color:var(--ink-soft);
+  letter-spacing:.02em;
+  margin:0 0 2.2rem;
+}
+.byline b{
+  display:block;
+  font-weight:700;
+  font-size:1rem;
+  color:var(--ink);
+  letter-spacing:.01em;
+}
+table,caption,figcaption,nav.toc,.num,dl.falsify dt,.disclaimer,.colophon{
+  font-variant-numeric:lining-nums;
+}
+
+h1{
+  font-family:var(--sans);
+  font-weight:900;
+  font-size:clamp(2.05rem,6vw,3.4rem);
+  line-height:1.26;
+  letter-spacing:-.005em;
+  font-feature-settings:"palt" 1,"kern" 1;
+  font-variant-numeric:lining-nums;
+  margin:0 0 1.4rem;
+}
+.standfirst{
+  font-size:1.06rem;
+  line-height:1.85;
+  color:var(--ink-mid);
+  margin:0 0 3rem;
+  max-width:34rem;
+}
+
+.faceswitch{
+  display:flex;gap:.34rem;justify-content:flex-end;
+  margin:0 0 1.5rem;
+}
+.faceswitch button{
+  font-family:var(--cjk-hei);
+  font-size:.8rem;line-height:1;
+  padding:.42rem .6rem;
+  background:none;
+  border:1px solid var(--rule);
+  color:var(--ink-soft);
+  cursor:pointer;
+}
+.faceswitch button:hover{color:var(--ink);border-color:var(--ink-soft)}
+.faceswitch button[aria-pressed="true"]{
+  background:var(--ink);border-color:var(--ink);color:var(--paper);
+}
+
+/* ---------- hero scale ---------- */
+figure{margin:3rem 0;padding:0}
+figure svg{display:block;width:100%;height:auto}
+figcaption{
+  font-family:var(--sans);
+  font-size:.8rem;
+  line-height:1.7;
+  color:var(--ink-soft);
+  margin-top:.9rem;
+  max-width:36rem;
+}
+.scale-frame{
+  border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);
+  padding:1.8rem 0 1.4rem;
+  margin:0 0 3.5rem;
+}
+
+/* ---------- toc ---------- */
+nav.toc{
+  margin:0 0 4.5rem;
+  padding:1.4rem 0 0;
+  border-top:1px solid var(--rule);
+}
+nav.toc ol{
+  list-style:none;
+  margin:0;padding:0;
+  column-count:2;
+  column-gap:2.5rem;
+  font-family:var(--sans);
+  font-size:.88rem;
+  line-height:1.45;
+}
+nav.toc li{break-inside:avoid;margin:0 0 .62rem}
+nav.toc a{
+  color:var(--ink-mid);
+  text-decoration:none;
+  border-bottom:1px solid transparent;
+}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--ink);border-bottom-color:var(--gold)}
+
+/* ---------- body ---------- */
+h2{
+  font-family:var(--sans);
+  font-weight:700;
+  font-size:clamp(1.3rem,3.4vw,1.6rem);
+  letter-spacing:0;
+  line-height:1.45;
+  font-feature-settings:"palt" 1;
+  font-variant-numeric:lining-nums;
+  margin:4.2rem 0 1.4rem;
+  scroll-margin-top:1.5rem;
+}
+p{margin:0 0 1.45rem}
+.lead-in{margin-top:0}
+
+em.key{
+  font-style:normal;
+  font-weight:700;
+  border-bottom:2px solid var(--gold-wash);
+  box-shadow:inset 0 -.42em 0 var(--gold-wash);
+}
+strong{font-weight:700}
+.num{font-family:var(--sans);font-weight:500;font-variant-numeric:tabular-nums}
+
+/* ---------- table ---------- */
+.tablewrap{overflow-x:auto;margin:2.4rem 0 1rem}
+table{
+  border-collapse:collapse;
+  width:100%;
+  min-width:33rem;
+  font-family:var(--sans);
+  font-size:.87rem;
+  font-variant-numeric:tabular-nums;
+  line-height:1.5;
+}
+caption{
+  text-align:left;
+  font-family:var(--sans);
+  font-size:.82rem;
+  color:var(--ink-soft);
+  padding-bottom:.9rem;
+}
+th,td{padding:.72rem .6rem;text-align:right}
+thead th{
+  font-weight:500;
+  color:var(--ink-soft);
+  border-bottom:1px solid var(--ink);
+  font-size:.8rem;
+}
+tbody th{
+  text-align:left;
+  font-weight:700;
+  white-space:nowrap;
+  padding-left:0;
+}
+tbody tr{border-bottom:1px solid var(--rule-soft)}
+tbody tr:last-child{border-bottom:1px solid var(--rule)}
+tbody td span{display:block;font-weight:400;color:var(--ink-soft);font-size:.78rem}
+tr.bear th{color:var(--ink-mid)}
+tr.base th{color:var(--btc)}
+tr.bull th{color:var(--gold)}
+tr.fail th{color:var(--oxblood)}
+tr.fail td{color:var(--oxblood)}
+
+/* ---------- falsifier list ---------- */
+dl.falsify{
+  margin:2.2rem 0 1rem;
+  border-top:1px solid var(--ink);
+}
+dl.falsify div{
+  display:grid;
+  grid-template-columns:12.5rem 1fr;
+  gap:0 1.6rem;
+  padding:.95rem 0;
+  border-bottom:1px solid var(--rule-soft);
+}
+dl.falsify dt{
+  font-family:var(--sans);
+  font-weight:700;
+  font-size:.87rem;
+  line-height:1.6;
+}
+dl.falsify dd{
+  margin:0;
+  font-size:.95rem;
+  line-height:1.75;
+  color:var(--ink-mid);
+}
+dl.falsify dd b{color:var(--ink);font-weight:600}
+
+/* ---------- closing ---------- */
+.coda{
+  margin-top:4.5rem;
+  padding-top:2.2rem;
+  border-top:2px solid var(--ink);
+}
+footer{
+  margin:5rem 0 0;
+  padding:2rem 0 4.5rem;
+  border-top:1px solid var(--rule);
+}
+.disclaimer{
+  font-family:var(--sans);
+  font-size:.78rem;
+  line-height:1.85;
+  color:var(--ink-soft);
+  margin:0 0 1.6rem;
+}
+.disclaimer b{color:var(--ink-mid);font-weight:700}
+.colophon{
+  font-family:var(--sans);
+  font-size:.78rem;
+  color:var(--ink-soft);
+  line-height:1.8;
+}
+.colophon b{color:var(--ink);font-weight:700}
+
+a{color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+@media (min-width:900px){
+  main > figure{margin-left:-3.2rem;margin-right:-3.2rem}
+}
+
+@media (max-width:640px){
+  body{font-size:16.5px;line-height:1.9}
+  header.mast{padding-top:2.8rem}
+  nav.toc ol{column-count:1}
+  dl.falsify div{grid-template-columns:1fr;gap:.3rem}
+  .scale-frame{padding:1.2rem 0 1rem}
+}
+
+@media print{
+  body{background:#fff;font-size:10.5pt}
+  nav.toc,.faceswitch{display:none}
+  h2{page-break-after:avoid}
+  figure,table{page-break-inside:avoid}
+}
+</style>
+</head>
+<body data-face="song">
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="col">
+    <div class="faceswitch" role="group" aria-label="正文字体">
+      <button type="button" data-set="song" aria-pressed="true">宋</button>
+      <button type="button" data-set="hei" aria-pressed="false">黑</button>
+      <button type="button" data-set="kai" aria-pressed="false">楷</button>
+    </div>
+    <p class="byline"><b>thinkfastslow</b>2026 年 9 月　第五稿</p>
+    <h1>BTC：0.57% 和 5% 之间</h1>
+    <p class="standfirst">价格等于全球金融财富，乘以比特币在其中的份额，除以供应量。供应已知，财富长期会涨，不知道的只有份额。</p>
+  </div>
+
+  <figure class="scale-frame">
+    <svg viewBox="0 0 860 176" role="img" aria-label="比特币占全球金融财富 0.57%，黄金约 5%，历史区间 2% 到 10%。三种长期情景分别对应 1%、3%、6%。">
+      <!-- gold band 2% -> 10% -->
+      <rect x="196" y="74" width="624" height="20" fill="#C7A966" opacity="0.26"/>
+      <line x1="430" y1="70" x2="430" y2="98" stroke="#8A6B2C" stroke-width="2.5"/>
+      <!-- btc bar 0 -> 0.57% -->
+      <rect x="40" y="74" width="44.5" height="20" fill="#2C5162"/>
+      <!-- labels above -->
+      <text x="40" y="58" font-family="Noto Sans SC,sans-serif" font-size="15" font-weight="700" fill="#2C5162">BTC　0.57%</text>
+      <text x="204" y="58" font-family="Noto Sans SC,sans-serif" font-size="15" font-weight="700" fill="#8A6B2C">黄金　约 5%，几十年在 2%–10% 之间摆动</text>
+      <!-- axis -->
+      <line x1="40" y1="104" x2="820" y2="104" stroke="#1B1E1A" stroke-width="1.2"/>
+      <g stroke="#1B1E1A" stroke-width="1.2">
+        <line x1="40" y1="104" x2="40" y2="112"/>
+        <line x1="118" y1="104" x2="118" y2="116"/>
+        <line x1="274" y1="104" x2="274" y2="116"/>
+        <line x1="508" y1="104" x2="508" y2="116"/>
+        <line x1="820" y1="104" x2="820" y2="112"/>
+      </g>
+      <text x="40" y="130" font-family="Noto Sans SC,sans-serif" font-size="12.5" fill="#6E7468">0</text>
+      <text x="820" y="130" text-anchor="end" font-family="Noto Sans SC,sans-serif" font-size="12.5" fill="#6E7468">10%</text>
+      <g font-family="Noto Sans SC,sans-serif" font-size="14" text-anchor="middle" fill="#1B1E1A">
+        <text x="118" y="136">熊市 1%</text>
+        <text x="274" y="136">基础 3%</text>
+        <text x="508" y="136">牛市 6%</text>
+      </g>
+      <g font-family="Noto Sans SC,sans-serif" font-size="12" text-anchor="middle" fill="#6E7468">
+        <text x="118" y="156">2046 年终局</text>
+        <text x="274" y="156">≈ 100 万美元</text>
+        <text x="508" y="156">≈ 190 万美元</text>
+      </g>
+    </svg>
+    <figcaption>横轴是 S：比特币市值占全球金融财富（约 270 万亿美元）的比例。今天的市值等于 0.57%。</figcaption>
+  </figure>
+
+  <div class="col">
+    <nav class="toc" aria-label="目录">
+      <ol>
+        <li><a href="#s1">先把问题压缩成一个变量</a></li>
+        <li><a href="#s2">过去的回报补偿什么风险，往后补偿什么</a></li>
+        <li><a href="#s3">黄金是参照，不是目标</a></li>
+        <li><a href="#s4">什么会让 S 增长</a></li>
+        <li><a href="#s5">这一轮到底谁卖给了谁</a></li>
+        <li><a href="#s6">为什么跌得这么深，底是怎么形成的</a></li>
+        <li><a href="#s7">为什么这次只跌了 54%</a></li>
+        <li><a href="#s8">顶部怎么看，周期时间怎么看</a></li>
+        <li><a href="#s9">现在在哪里</a></li>
+        <li><a href="#s10">幂律和实现价格能告诉我们什么</a></li>
+        <li><a href="#s11">四种情景，把路径写出来</a></li>
+        <li><a href="#s12">量子</a></li>
+        <li><a href="#s13">假设的修正</a></li>
+        <li><a href="#s14">最后</a></li>
+      </ol>
+    </nav>
+  </div>
+</header>
+
+<main class="col">
+
+<p class="lead-in">2026 年 9 月，比特币在 7.7 万美元附近，市值 1.55 万亿。离去年 10 月 12.6 万的高点快一年了，中间 2 月跌到 6 万，6 月又回到 5.7 万一带，最大回撤 54%。今年到现在还跌着 10%，标普涨了 13%。</p>
+
+<p>价格走势和过去几轮很像。但有几件事变了：涨得慢了，波动小了，持有人越来越机构化。过去习惯问“下一轮还能不能涨五倍”，现在这个问题可能问错了方向。过去十几年的回报补偿的是一种风险：比特币到底会不会被接受；往后的回报补偿的是另一种：它到底能存多少价值。BTC 最后会变成多大的一个资产类别，全球的钱愿意长期放多少比例进去。这个答案不会在一轮周期里显现，但它决定了未来十年二十年长期回报的上限。</p>
+
+<p>这篇东西想弄清楚的是生成价格的规律有哪几条，每一条手上有多少证据。</p>
+
+<h2 id="s1">先把问题压缩成一个变量</h2>
+
+<p>比特币供应是给定的，价格的全部变化都来自需求。把全球金融财富记作 F，其中配置给 BTC 的比例记作 S，市值就是 F 乘 S，价格是它除以供应量。</p>
+
+<p>F 大约 270 万亿美元，BTC 市值 1.55 万亿，S 今天是 0.57%。把所有预测压缩到一个变量上：S 最终到哪、什么时候到、什么决策推它到那里。</p>
+
+<p>市面上的模型大多在绕开这个变量。<b>Stock-to-Flow</b> 把稀缺当价格来源，可稀缺只说了供给一侧。<b>活跃地址模型</b>在 ETF 出现后就失真了，BlackRock 里几十万个持有人不会对应几十万个链上地址。<b>矿工成本</b>是算力决定价格，其实应该是反过来。<b>幂律拟合</b>历史很好看，但按 5.8 次方外推，2030 年代中期 BTC 会超过一百万美元，等于假定它占全球金融财富 4%、5%，其实还是 S。既然如此，不如直接看 S。</p>
+
+<h2 id="s2">过去的回报补偿什么风险，往后的回报补偿什么</h2>
+
+<p>从几美元到十几万美元，这段回报补偿的是一个二元问题：比特币到底会不会被接受。2013 年买 BTC 的人承担的主要是“它会不会归零”的风险——被禁掉、被黑掉、被更好的东西替代，或者干脆没人要。那时候结果的分布大头压在零附近，另一头拖着一条细长的尾巴，持有它更像持有一张期权。价格每上一个台阶，本质上是市场把“被接受”的概率往上调了一格：Mt. Gox 没死，中国三次禁令没死，2018 年跌 84% 没死，FTX 没死，每一次都在调这个概率。2024 到 2025 年的 ETF、会计准则、银行托管、国家储备行政令，是这个概率一次大幅上调。承担了之前二元风险并且赌对的人，拿到的是概率从零点几到接近一的兑现，很难再发生第二遍。</p>
+
+<p>现在基本上可以肯定 BTC 会作为一个资产类别存在。剩下的问题是：它到底能存多少价值，S 最后是 1% 还是 3% 还是 6% 或者更高？这是一个连续的、幅度上的不确定性。风险的性质变了，回报的性质跟着变。二元风险的补偿是期权式的，赢了几十倍上百倍；幅度风险的补偿是普通风险资产式的，赢了三倍五倍，输了横盘十年。</p>
+
+<p>为什么幅度风险配得上的回报更低，有几个互相独立的理由。结果分布的离散度小了：2013 年的可能结果是零到几百万美元，绝大部分概率压在零那头；今天的可能结果是五万到两百万，大部分概率在中间，离散度小，要求的溢价就低。边际持有人换了：早期持有人是不分散的个人和基金，为一个可能归零的仓位期望极高的回报；今天的边际买家逐渐是把 BTC 放在几百个仓位里的机构，对同一个资产期望的回报低得多。边际持有人的要求回报下降，本身就是 2020 到 2025 年重估的来源之一。波动率减半：实现波动率从 80% 降到 40%，如果风险调整后的回报大致不变，预期超额回报就得跟着减半。还有，“被接受”这件事一旦发生，收益就开始像别的被接受的资产：BTC 对全球流动性、对纳斯达克的 beta 在 2020 年以后明显上升，它收益里独有的成分在缩小，越来越多的部分能被同一批宏观因子解释。这四条在数据里都看得见：顶到顶的年化从 103% 到 38% 到 17%，顶部溢价倍数从 6 到 2.4，就是接受风险的溢价被兑付、然后消失的过程。</p>
+
+<p>一个已经被稳定接受的储值资产，预期回报大约等于名义财富的增速，守住自己的份额，跟着 F 涨。黄金长期就是这样，长期实际回报接近零，名义回报四到八个点。BTC 从现在到终局之间多出来的那部分回报，会主要来自 S 从 0.57% 往上走：后面基础情景二十年走到 2.6%，是 4.6 倍，摊到每年八个点上下，加上 F 的五到六个点，就是十三四个点，而且多出来的这部分会随着 S 接近上限逐年消失。</p>
+
+<p>不过“接受”要分两层说。作为一个可投资的资产类别，二元接受已经完成；但是作为储值资产被储值的机构接受的程度，例如被央行、养老金接受，还没有发生。在这方面，过去一年半里面黄金赢了 BTC，就是这一层还没走完全程的证据。所以剩下的回报里有一部分仍然是“被接受”风险的补偿。另外二元风险也没有完全消失，量子迁移是一条新的、而且随时间变大的二元风险。</p>
+
+<p>对持仓的含义很直接。用 2013 年的逻辑，小仓位赌一个几十倍的不对称，去看今天的 BTC 是错位的，那个不对称的风险回报已经兑付给上一批持有者了。今天的 BTC 该按它现在的风险来配：一个高流动性 beta，外加一段还没走完的采用曲线，预期回报十几个点，波动四十几个点，夏普零点三，两边厚尾。这是一个可以放进组合的普通高风险资产，不再是一张期权。</p>
+
+<h2 id="s3">黄金是参照，不是目标</h2>
+
+<p>BTC 不产生现金流。一个不产生现金流的东西，长期能承载的只有货币溢价，也就是人们为“把财富放在这里”而不是“从这里拿收益”付的钱。所以 S 的上限受一件事约束：世界愿意以非生息、无主权资产的形式持有多少财富。这个数量历史上只有一个样本可以看，就是黄金。金条、金币、黄金 ETF 和央行储备加起来大约 14 万亿美元，占全球金融财富 5% 上下，几十年里这个比例在 2% 到 10% 之间摆动。</p>
+
+<p>说黄金是参照、不是目标，因为 BTC 可以低于黄金的比例。比特币没有首饰和工业需求托底，还有后面要说的协议层风险；BTC 也可以高于黄金，它自托管、便携、可验证、可编程。还有一个常见反驳：Bitwise 今年的顾问调查显示，配加密资产的钱 43% 来自股票、35% 来自现金，几乎没人从黄金里挪。但资金从哪来和资产在组合里干什么是两件事。从股票里拿钱买 BTC，买的是储值和分散化，还是对采用曲线的风投式下注？后者的溢价可以暂时超出储值池，2013 到 2021 年就是，但它在一轮一轮衰减，后面会看到顶部溢价倍数的序列。所以黄金约束终局，不约束过渡期。</p>
+
+<p>过去一年半发生的事实对 BTC 不利。财政赤字、货币贬值、央行扩表，理论上 BTC 是最大受益者。实际上世界先买了黄金：2022 年以来央行每年净买一千吨上下，没有一家 G20 央行把 BTC 放进储备（美国财政部那二十万枚是没收来的，不是买的）。去年 10 月一枚 BTC 换 31 盎司黄金，现在换 18 盎司。用美元看 BTC 这几年经历了一轮大牛市，用它想取代的黄金看，它已经跌了一半。所以 BTC 兑黄金是这个框架里最重要的一张图，它直接测储值溢价有没有在向 BTC 迁移。</p>
+
+<p>支付那一层不用争了，稳定币已经拿走。跨境转十万美元没有理由先买 BTC、扛几十个点的波动再转出去，USDT 和 USDC 做得更好。留给 BTC 的只有储值这一个问题。</p>
+
+<h2 id="s4">什么会让 S 增长</h2>
+
+<p>最大的一股力量不是更多人“相信比特币”，而是机构内部的职业风险倒过来。一个基金经理最安全的选择一直是零配置：BTC 崩了，那是投机品，跟我的组合无关。等 ETF 存在了、wirehouse 放行了、同行开始配 1%，逻辑会慢慢反转，别人有 1%、BTC 涨了三倍、你是零，零本身就成了要解释的决定。这种转变是阶跃式的，一个资产可以很多年停在“可以买但不必买”，然后某一天进入“不买要解释”。</p>
+
+<p>但要说美国财富管理行业已经跨过这道门，证据不够。Bitwise 和 VettaFi 今年的调查里，2025 年有 32% 的顾问给客户配了加密资产，前一年是 22%；42% 说自己能在客户账户里买，前两年分别是 35% 和 19%。趋势是对的，但反过来读，还有<em class="key">58% 连权限都没有，68% 没配</em>，他们不需要向任何人解释什么。职业风险还没有反转，反转发生的标志是 wirehouse 的模型组合把 BTC 设成默认权重。养老金、保险、主权基金离门槛更远。</p>
+
+<p>第二股力量是波动率。机构配一个资产，权重不只看预期收益，也看风险，粗略说最优权重和收益除以方差同向。BTC 一年实现波动率从过去的 70%、80% 降到 40% 左右，即使没人变得更乐观，能接受的仓位也会高很多。当前这场熊市里，30 日实现波动率一度只有 27%，BTC 历史上的熊市底部没出现过这种数字。</p>
+
+<p>第三股是人口结构，最慢也最机械。年轻人持有加密资产的比例明显高于老年人，美国未来二十年有几十万亿美元的代际财富转移，如果接手的人愿意放 3% 到 4%，上一代是 0.5%，什么新叙事都不需要就是几万亿美元的差。</p>
+
+<p>第四股是 Lindy，每多活一年，“它会不会突然消失”的折价就少一点。这对交易所倒闭、监管打击这类经历过的风险成立，对量子计算这种还没出现过的东西不成立，后面单说。</p>
+
+<p>钱从哪来可以粗略估算：美国受顾问管理的财富超过 30 万亿，全球高净值大约 90 万亿，如果进了标准模型组合、平均配 1% 到 2%，是 0.5 到 1.5 万亿。养老金和保险超过 60 万亿资金，会慢得多，如果十年后平均达到 0.5% 是三千亿。主权财富基金 13 万亿，1% 是 1300 亿。央行的钱反而不多，不含黄金的外储 12 到 13 万亿，1% 才 1200 亿，央行的意义在信号，一家重要央行入场会改变所有人对上限的看法，但是概率应该很低，小国和美元依赖度高的国家最可能先动，G7 最后甚至永远不动。企业这一块按接近零处理：上市公司已经持有 129 万枚，Strategy 一家 84.5 万，平均成本 7.5 万，贴着现价，背后有 67 亿债务和 150 亿优先股，mNAV 只剩 1 倍出头，今年还开始卖币付优先股股息了，规模不大，但那个“发溢价股票、买币、币涨、再融资”的飞轮已经转不动了。</p>
+
+<p>把能识别的加起来，未来十年大约 2 到 3 万亿美元的潜在配置。这个数不能乘一个流量乘数直接变成新增市值，因为还要考虑到套现方。</p>
+
+<h2 id="s5">这一轮到底谁卖给了谁</h2>
+
+<p>BTC 的供应固定，但是愿意出售的供应从来不固定。每一轮牛市本质上都是一次所有权转移。</p>
+
+<p>Glassnode 的长期持有者定义为 155 天以上没动的币。它过去两年的路径是这样的：2024 年 9 月约 1,420 万枚，到 12 月底掉到 1,320 万，三个月净出 100 万，而且卖的全是盈利的老币，是“老币在顶部套现”。然后 2025 年上半年，前一年底买进来的币陆续满 155 天，桶重新长回来，7 月到 1,470 万。下半年又开始套现，到 11 月初 1,440 万，净减 30 万。期间的换手有 240 万，只是大部分被新成熟的币抵消了。2026 年 1 月也一样，30 天净减 14 万，毛卖 37 万，22 万成熟。到今年 8 月，这个桶总共接近 1,500 万比特币持有量。</p>
+
+<p>如果看净额的话，这个桶两年没有变小，反而多了几十万枚。但是里面的人发生了变化。长期持有者的平均成本到今年 7 月已经是 4.97 万美元，Glassnode 的成本分布里有 107 万枚是 8.3 万到 8.6 万之间买的，几乎全在长期持有者手里。一个最初成本几百美元的桶，不换成员，长不出 100 万枚成本 8.5 万的币。</p>
+
+<p>卖方是三批。2024 年四季度是盈利的老币。2025 年下半年，长期持有者是在价格横盘走弱时卸货，Glassnode 叫它疲劳；同一时期鲸鱼钱包其实在增持，一直在减的是 0.1 到 10 枚的钱包；从 2024 年 11 月起动量买家一直在退出，卖给鲸鱼和 ETF，所以价格阴跌没崩。2026 年上半年，底部的卖方是成本 9 万以上的新长期持有者：6 月初长期持有者开始亏着卖，卖出的币里四分之一来自成本高于 9 万的人，实现亏损 24 亿，价格大致为 6.2 到 6.5 万。</p>
+
+<p>那么“筹码换到了更稳的手里”这句成立不成立？证据两边都有。支持的一面：ETF 按上市以来创建的币算，盈亏平衡点在 8.6 万附近，已经连续两百多个交易日收在下面，账面亏损今年 2 月见底于 180 亿美元，这期间累计净赎回只有峰值的 9%。七个多月、最大 180 亿浮亏、九成以上的币没出 ETF wrapper，这是一次真实的压力测试。反对的一面：2024、25 年进来的新长期持有者在 6 月确实投降了；下半年在跌势里卸货是信念下降；一直减持的 0.1 到 10 枚这一层正是所谓的零售基础。准确的说法是：桶的规模守住了，成本上移了，一部分新成员经过了亏损测试，另一部分没有。</p>
+
+<p>ETF 那 9% 还要再打一个折。币留在 wrapper 里不等于原来那批投资者没卖，ETF 份额在二级市场换手不触发申赎，净赎回小只说明想走的人被 wrapper 里的新买家在那些价格上接走了。</p>
+
+<h2 id="s6">为什么跌得这么深，底是怎么形成的</h2>
+
+<p>股票跌到某个位置有盈利收益率，债券有票息和本金，房子有租金。BTC 没有一个价格能让人说“低于这里我必须买”。它唯一的锚是现有持有者的保留价格，而保留价格由每个人对未来的判断、现金需要、负债、风险预算决定。这些才是第一性的东西，但没法观测。能观测的是成本。成本本身不决定价值，可它是行为金融里最稳固的实证之一：<em class="key">人显著更愿意在盈利时卖、在亏损时扛</em>。所以成本是保留价格分布的一个代理，高成本大致意味着近期进场、杠杆和动量预期多，低成本意味着巨额浮盈、没有紧迫性。链上那些基于成本的指标能用，是因为这层代理关系成立。</p>
+
+<p>熊市就是价格往下找保留价格分布的下端。牛市顶点是成本最高的最后一批买家做出来的，从顶到稳定持有者的成本区天然隔得很远，杠杆会把这段距离再放大。每一轮顶部附近永续和期货的未平仓量都高，资金费率偏正，treasury company 的溢价扩大，BTC 抵押借贷增加，涨的时候这些都是加速器，跌的时候全变成被动卖方。去年 10 月 10 日新高之后几天，单日清算大约 190 亿美元。顶部从来不是“太贵”，是整个市场的资产负债表一起到了极限。</p>
+
+<p>BTC 的价值来自共识，而共识缺少传统资产那种估值模型的分歧。股票跌到 12 倍市盈率会有价值投资者接动量投资者的货，BTC 下跌时大家看的是同一张图、同一组链上数据，判断同时更新，几周就能从“所有人等回调买”变成“所有人等更低”。今年 BTC 越来越像一个全球 24 小时的风险释放阀，2 月底伊朗冲突出来时传统市场关着，加密市场独自先吸收；它还要和 AI 股票争同一批边际风险资金。</p>
+
+<p>底部是一个过程，不是一个价格。价格是成交，得有人接。给定需求曲线，底部在被迫和意愿卖出枯竭的地方形成。熊市里剧烈变化的是供给一侧，需求曲线相对稳定，定投、再平衡、机构在更低价总有一点接盘。底是卖方枯竭形成的，这也是为什么卖方枯竭类的指标在底部比买方指标好用。例外是需求曲线自己塌掉，2022 年 FTX、2020 年 3 月都是买方也被拿走了，所以那两次更深。需求曲线塌的时候没有什么成本区守得住。</p>
+
+<p>底部过程顺序上先是杠杆清洗，未平仓量下来、资金费率转负、大规模清算结束。然后进成本区，短期持有者的平均成本一度在 6.9 万，6 月他们平均浮亏 18%，再往下就是新长期持有者的投降。更深一层还没被测：全网平均成本大约 5.35 万，几个鲸鱼群体的成本集中在 4.9 到 5.4 万，历史上每次主要熊市最后都跌破过全网成本，这次最低只到 5.7 万。如果守住，是第一次，也是很强的一条比特币成熟化证据。2018 年 2 月第一次低点之后 11 月又跌了 50%，2022 年 6 月低点之后 11 月又低了 12%。6 月低点能不能守到明年，给一半的概率。</p>
+
+<h2 id="s7">为什么这次只跌了 54%</h2>
+
+<p>过去是 77%、84%，这次 54%。一个自然的解释是持有人结构变了，出现了一批价格不敏感的钱，ETF 本轮承受的压力测试是证据。但还有另一个解释。</p>
+
+<p>第二个解释是顶部更“实在”。每轮顶部市值对全网成本的倍数一路下降，大约 6 倍、4.7 倍、3.9 倍、2.4 倍，对应的回撤是 85%、84%、77%、54%，顶越虚跌得越深。去年的顶溢价低，这一条本身就能解释大半回撤变浅。</p>
+
+<figure>
+  <svg viewBox="0 0 700 262" role="img" aria-label="五轮熊市的最大回撤分别为 93%、85%、84%、77%、54%，对应的顶部市值对全网平均成本的倍数为 6、4.7、3.9、2.4。">
+    <!-- baseline -->
+    <line x1="46" y1="200" x2="660" y2="200" stroke="#1B1E1A" stroke-width="1.2"/>
+    <!-- bars -->
+    <g>
+      <rect x="70" y="51.2" width="60" height="148.8" fill="#2C5162" opacity="0.16"/>
+      <line x1="70" y1="51.2" x2="130" y2="51.2" stroke="#2C5162" stroke-width="2.4"/>
+      <rect x="190" y="64" width="60" height="136" fill="#2C5162" opacity="0.16"/>
+      <line x1="190" y1="64" x2="250" y2="64" stroke="#2C5162" stroke-width="2.4"/>
+      <rect x="310" y="65.6" width="60" height="134.4" fill="#2C5162" opacity="0.16"/>
+      <line x1="310" y1="65.6" x2="370" y2="65.6" stroke="#2C5162" stroke-width="2.4"/>
+      <rect x="430" y="76.8" width="60" height="123.2" fill="#2C5162" opacity="0.16"/>
+      <line x1="430" y1="76.8" x2="490" y2="76.8" stroke="#2C5162" stroke-width="2.4"/>
+      <rect x="550" y="113.6" width="60" height="86.4" fill="#2C5162" opacity="0.16"/>
+      <line x1="550" y1="113.6" x2="610" y2="113.6" stroke="#2C5162" stroke-width="2.4"/>
+    </g>
+    <!-- drawdown labels -->
+    <g font-family="Noto Sans SC,sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#2C5162">
+      <text x="100" y="42">93%</text>
+      <text x="220" y="55">85%</text>
+      <text x="340" y="56">84%</text>
+      <text x="460" y="68">77%</text>
+      <text x="580" y="105">54%</text>
+    </g>
+    <!-- premium multiple line -->
+    <polyline points="220,54.3 340,85.8 460,105.3 580,141.7" fill="none" stroke="#8A6B2C" stroke-width="1.6" stroke-dasharray="5 4"/>
+    <g fill="#8A6B2C">
+      <circle cx="220" cy="54.3" r="4.6" stroke="#ECEDE7" stroke-width="2"/>
+      <circle cx="340" cy="85.8" r="4.6" stroke="#ECEDE7" stroke-width="2"/>
+      <circle cx="460" cy="105.3" r="4.6" stroke="#ECEDE7" stroke-width="2"/>
+      <circle cx="580" cy="141.7" r="4.6" stroke="#ECEDE7" stroke-width="2"/>
+    </g>
+    <g font-family="Noto Sans SC,sans-serif" font-size="13" fill="#8A6B2C">
+      <text x="231" y="50">6.0×</text>
+      <text x="351" y="81">4.7×</text>
+      <text x="471" y="101">3.9×</text>
+      <text x="591" y="137">2.4×</text>
+    </g>
+    <!-- cycle labels -->
+    <g font-family="Noto Sans SC,sans-serif" font-size="13" text-anchor="middle" fill="#4A4F46">
+      <text x="100" y="222">2011</text>
+      <text x="220" y="222">2013–15</text>
+      <text x="340" y="222">2017–18</text>
+      <text x="460" y="222">2021–22</text>
+      <text x="580" y="222">2025–26</text>
+    </g>
+    <!-- legend -->
+    <g font-family="Noto Sans SC,sans-serif" font-size="12.5">
+      <rect x="46" y="243" width="18" height="9" fill="#2C5162" opacity="0.28"/>
+      <text x="72" y="252" fill="#4A4F46">最大回撤</text>
+      <line x1="176" y1="248" x2="200" y2="248" stroke="#8A6B2C" stroke-width="1.6" stroke-dasharray="5 4"/>
+      <circle cx="188" cy="248" r="4" fill="#8A6B2C"/>
+      <text x="210" y="252" fill="#4A4F46">顶部市值 ÷ 全网平均成本</text>
+    </g>
+  </svg>
+  <figcaption>顶部的虚实和随后的跌幅同向移动。五轮回撤是这份框架里最干净的一条序列，没有例外。</figcaption>
+</figure>
+
+<h2 id="s8">顶部怎么看，周期时间怎么看</h2>
+
+<p>顶部的逻辑反倒简单：杠杆、老币套现、新买家饱和同时到极端。永续资金费率连续两周以上超过 20% 年化，期货未平仓量超过市值 3%，treasury company 的溢价重新超过 2 倍，市场再冒出一批模仿 Strategy 的公司，长期持有者连续几个月净减，短期持有者占比快速上升，山寨币份额在 90 天里涨 3 个点。ETF 流量在顶部要反着看，去年 10 月累计流入创最高，价格同月见顶；2024 年 11 月和 2025 年 7 月两个创纪录的单月流入之后一两个月都出了局部顶。顶部最大的买家本来就是最后进场的钱。</p>
+
+<p>四年周期：2017 年的顶在减半后约 17 个月，2021 年 18 个月，2025 年 10 月也是 18 个月，三轮同一个时间结构，不能因为 ETF 来了就忽略。下次减半在 2028 年 4 月，规律若在，该警惕的窗口是 2029 年 9 到 10 月。它和后面两条路径推出来的 2029 到 2030 年重合，巧合的交叉验证。</p>
+
+<p>幅度在收缩。顶到顶的年化从 103% 到 38% 到 17%；底到底是 107%、50%、44%，慢得多。最干净的序列是回撤幅度，93%、85%、84%、77%、54%，五轮全部成立。增速和幅度一起收缩，用前面的话说，就是接受风险的溢价兑付之后消失的样子。</p>
+
+<h2 id="s9">现在在哪里</h2>
+
+<p>链上能看到每一枚币最后一次换手的价格，所以能大致数出“墙”在哪。上面那道墙在 8.3 到 8.6 万：长期持有者里有 107 万枚是这个价位买的，ETF 买家的平均成本也在 8.6 万附近，两批人都被套着等回本；期货市场押跌的人，强制平仓价也集中在 8.2 到 8.6 万，价格涨到那里会有一波猛烈的被动买入，但之后燃料就烧完了。企业持币的平均成本 8 万，也在附近。三四组人的回本线叠在一起，这就是天花板。地板在往上挪：6 月在 6.2 到 6.5 万买进的人很多已经获利离场，那一层变薄了；最近两个月大量的币在 7.6 到 8.2 万换手，新一批持有人的成本就在现价上下。</p>
+
+<p>卖的人也变了。8 月卖出获利的人里 88% 是拿了好几年的老持有者，现在降到 47%，卖的主要是刚买的人赚一点就走，整体卖出量降到 8 月的一半以下。Glassnode 45 个指标组成的温度计，6 月底有 82% 处在各自历史上最冷的区间，现在只剩 2%，但四分之三仍低于历史中间值。不便宜了，离贵还远。每次顶部之前钱会从 BTC 溢出到山寨币，山寨币份额涨两三个点，现在还在缩。</p>
+
+<p>底部确认了没有？VanEck 那张 12 项的投降清单，杠杆、矿工、成交量、短期持有者割肉、200 周均线，这些都勾掉了。没勾掉的是最关键的一项：一年以上没动过的币只占 59%，过去几次真正的底部是 65% 到 70%，说明币还在换手，还没沉淀到打算长期拿着的人手里。还有一条，历史上每次熊市最后都跌破过全网平均成本，现在大约 5.35 万，这次最低只到 5.7 万，没碰到。所以我把这里定义成早期积累，底部未确认。安静不等于见底，2018 年秋天 BTC 在 6000 美元横了两个多月，然后又跌了一半。VanEck 自己也回测过，清单勾掉 8 项以上之后，往后 90 天和 180 天的平均回报反而低于基准，只有拿一年才跑赢。该盯的不是 5.7 万那个瞬间低点，是 6.2 到 6.5 万那层真实买盘守不守，以及再跌一轮时 5.35 万那条线守不守。</p>
+
+<h2 id="s10">幂律和实现价格能告诉我们什么</h2>
+
+<p>全网平均成本乘供应量就是实现市值，它是实际投入 BTC 的净资本，也就是 F 乘 S 那个分子的链上测量，去掉了投机溢价。拿每年年初的实现价格对时间做幂律拟合，<em class="key">以创世为起点，指数大约 5.3，拟合度 0.93</em>。但这个指数不稳，而且不稳有两个来源。一是起点：幂律是 A 乘 (t − t₀) 的 n 次方，t₀ 取创世是理论选择，数据自己分不出来，t₀ 在 2008 到 2011 之间任取，指数在 4.2 到 5.9 之间变，拟合质量几乎不动。二是窗口：只用 2018 年以后的数据，指数掉到 4.1，因为 2017 年那次实现价格两年涨 16 倍，任何含这一段的窗口指数都被拉高。真正稳定的只有当前的局部增速，无论怎么取起点都在 28% 到 33% 之间，但往外推十年二十年时，起点和窗口各带一个两倍上下的差。所以幂律的指数只能当诊断，不能当预测变量，谁引用幂律目标价而不说明起点和窗口，那个数就没有信息。</p>
+
+<p>有经济含义的是实现市值每年增加了多少美元。2023 年大约增加 370 亿，2024 年 4,390 亿，2025 年 1,890 亿，今年上半年 350 亿。按周期看是 740 亿、3,000 亿、本轮到现在 6,650 亿，美元流入在增长，百分比增速在下降，这是任何底数在长大的东西的必然。还有一个结构性原因让它以后会更慢：实现价格上涨主要靠老币按新持有人的成本重新计价，100 万枚从 1000 美元的成本转到 10 万美元，实现市值就多近 1,000 亿。十年以上没动的 350 万枚大概率永远不会重新计价，5 到 10 年那几层还有 300 万枚可以。这个池子用完，再增长只能靠边际新资本，会是低一档的状态。</p>
+
+<p>用 2018 年以后的增速做个数量级检查，2030 年的实现价格大约在 9.5 万到 12 万之间。映射到市场价格要看顶部的溢价倍数，6、4.7、3.9、2.4 一路下来，如果下一轮再降到 2 上下，对应的周期顶部价格是 19 到 24 万美元。这和下面份额路径里 2031 年基础情景的 19 万是一个量级。</p>
+
+<h2 id="s11">四种情景，把路径写出来</h2>
+
+<p>只保留四种长期情景，按 S 的终局区分。熊市约 1%，黄金继续把住储值需求，BTC 维持高 beta 风险资产的属性。基础约 3%，达到投资黄金份额的三分之二。牛市约 6%，进入黄金同一量级，养老金、主权基金、部分国家储备较早完成配置。失败情景是协议安全、治理或量子迁移出了修不好的问题。F 每年涨 5.5%，供应按减半日程：</p>
+
+<div class="tablewrap">
+<table>
+  <caption>每格上行是 S，下行是对应的名义美元价格</caption>
+  <thead>
+    <tr><th scope="col" style="text-align:left">情景</th><th scope="col">2029</th><th scope="col">2031</th><th scope="col">2036</th><th scope="col">2046</th></tr>
+  </thead>
+  <tbody>
+    <tr class="bear"><th scope="row">熊市</th>
+      <td>0.50%<span>7.8 万</span></td><td>0.45%<span>7.7 万</span></td><td>0.40%<span>8.8 万</span></td><td>0.35%<span>13 万</span></td></tr>
+    <tr class="base"><th scope="row">基础</th>
+      <td>0.85%<span>13 万</span></td><td>1.1%<span>19 万</span></td><td>1.8%<span>40 万</span></td><td>2.6%<span>100 万</span></td></tr>
+    <tr class="bull"><th scope="row">牛市</th>
+      <td>1.1%<span>17 万</span></td><td>1.7%<span>29 万</span></td><td>3.2%<span>70 万</span></td><td>5.2%<span>190 万</span></td></tr>
+    <tr class="fail"><th scope="row">失败</th>
+      <td>&lt; 1.5 万</td><td>&lt; 1.5 万</td><td>&lt; 1.5 万</td><td>&lt; 1 万</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>有人会算，2031 年若到 3% 是 52 万，表里怎么只有 19 万。因为 19 万对应的 S 是 1.1%，路径比终局慢很多。2031 年到 3% 意味着五年新增 9 万亿市值，约等于把私人投资黄金（金条金币 ETF 大约 8 万亿）在一个周期里全部搬进 BTC，我不信这个速度。基础路径隐含的假设是下一个周期净投入资本 1.2 到 1.6 万亿美元，大约是本周期的 1.3 到 1.6 倍，比历史上每周期两到四倍的增速保守。</p>
+
+<p>这条假设可以直接观测：2027 到 2030 年实现市值年均增量高于 4,500 亿，说明历史增速还在；如果低于 2,500 亿，就是新常态。推动它的决策也该一一对应：wirehouse 模型组合的默认权重在 2027 到 2030 年间出不出现，养老金和保险的首批 0.5% 在 2030 年代前半出不出现，主权基金公开配置出不出现。三件事一件都没有，基础情景就该往熊市挪。</p>
+
+<p>概率上，2029 年我给 35% 熊市、42% 基础、18% 牛市、5% 失败；2031 年 28、42、22、8；2036 年 25、40、22、13；2046 年 25、33、22、20。这是下注的分布，不是事实。熊市情景不是再崩 90%，是十年后还在今天的价格附近，名义没怎么跌，购买力一直在掉。基础情景到 2029 年也只是重新站上去年的高点。折成期望值大约是年化 12% 到 16%，其中五到六个点来自 F 的增长，其余来自 S 往上走，而 S 那部分会随着接近上限逐年消失；波动率 45% 上下，夏普 0.3 左右，两边都是厚尾，不是免费的午餐。二十年后若真到 190 万，对应 40 万亿市值，和整个黄金货币体系一个量级，再往上逻辑就不能停在“抢黄金”了，得从主权债和房地产里夺货币溢价，那是另一个命题，我给不到 10%。</p>
+
+<h2 id="s12">量子</h2>
+
+<p>BTC 最大的长期风险恰恰不是它经历过的那些事。Mt. Gox、FTX、中国禁令、交易所倒闭、矿工迁移，每熬过一次 Lindy 就增加一点；量子计算不一样，它是一种还没出现过的物理能力。超过三分之一的 BTC 已经在链上暴露过公钥，足够强的量子计算机出现时这些就是攻击对象。今年 3 月底 Google Quantum AI 的论文把攻破 ECDSA 所需资源的估计降了大约 20 倍，Google 内部的后量子迁移目标是 2029 年。技术方案有，BIP-360 今年 2 月进了 BIP 库，测试网已经在跑，BIP-361 提出分阶段让旧签名在五年内失效。但是值得担心的是治理速度，SegWit 从概念到大规模采用花了八年半，Taproot 花了七年半。密码学迁移不只是写代码，是几千万用户、交易所、钱包、托管方、矿工和多年不动的钱包能不能在攻击可行之前完成。所以模型里的失败概率不随时间下降，2029 年 5%，2046 年 20%。活得越久传统风险越低，技术攻击面的窗口却越长。</p>
+
+<h2 id="s13">假设的修正</h2>
+
+<p>下面这些是让我改变权重的观测项。它们都能在公开数据里验证，也都带明确的时间点。</p>
+
+<dl class="falsify">
+  <div><dt>BTC 兑黄金</dt><dd>一直压在 15 盎司以下到 2028 年四季度，<b>把基础情景往熊市挪</b>——那意味着又一次减半过去，储值份额还是没有向 BTC 迁移；如果重新站上 40 盎司，<b>明显加牛市的权重</b>。</dd></div>
+  <div><dt>价格新高</dt><dd>2029 年底还没有新的价格历史高点，过去十几年的增速衰减就当结构性事实。</dd></div>
+  <div><dt>周期顶部</dt><dd>2030 年前周期顶部突破 20 万，<b>提高上限超过 3% 的概率</b>。</dd></div>
+  <div><dt>长期锁仓供应</dt><dd>ETF、上市公司和主权现在控制供应的 12% 到 13%，基础情景要求 2031 年过 20%。</dd></div>
+  <div><dt>实现市值增量</dt><dd>年均高于 4,500 亿是历史增速还在，低于 2,500 亿是新常态。</dd></div>
+  <div><dt>波动率</dt><dd>长期低于 35%，机构还能加仓；回到 55% 以上，对大规模配置仍太危险。</dd></div>
+  <div><dt>主权入场</dt><dd>任何 G20 央行或前十主权基金公开配置，<b>提高上限</b>。</dd></div>
+  <div><dt>后量子迁移</dt><dd>2030 年前后主网还没启用后量子输出类型，<b>明显提高失败概率</b>。</dd></div>
+  <div><dt>安全预算</dt><dd>2028 年减半后手续费长期低于矿工收入的 10%，重新评估安全预算。</dd></div>
+</dl>
+
+<section class="coda">
+<h2 id="s14" style="margin-top:1.6rem">最后</h2>
+
+<p>价格等于全球金融财富乘 BTC 的份额除以供应量。供应已知，财富长期会涨，不知道的只有份额，比特币今天 0.57%，黄金 5%。这两个数之间是一组要靠决策和时间填满的空白。过去十几年比特币的回报是接受风险的兑付，那笔钱已经付过了；过去一年半的证据对“数字黄金”不利，储值的钱选了黄金；持有人结构在变，但“更稳”没有被证明；回撤变浅有两个纠在一起的解释；周期的时间结构还在，幅度在缩。决定二十年结果的仍然是两个问题：储值溢价会不会向 BTC 迁移，治理能不能在量子威胁成真之前完成迁移。</p>
+</section>
+
+<footer>
+  <p class="disclaimer"><b>免责声明。</b>本文是作者的个人研究笔记，仅供交流与讨论，不构成对任何证券、数字资产、衍生品或其他金融产品的投资建议、要约、招揽或推荐，也不构成税务、法律或会计意见。文中的价格、份额、概率与情景均为基于公开信息的主观估计，可能包含错误，可能随时改变，且不保证准确、完整或可实现。历史表现不预示未来结果。加密资产波动剧烈、流动性可能中断，存在永久损失全部本金的可能。读者应独立判断并对自己的决策负全部责任，必要时咨询持牌专业人士。作者可能持有文中提及的资产，且不承诺更新本文。</p>
+  <p class="colophon"><b>thinkfastslow</b><br>BTC 长期框架　第五稿　2026 年 9 月</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+(function(){
+  var sw = document.querySelector('.faceswitch');
+  if(!sw) return;
+  var kaiLoaded = false;
+  sw.addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    if(!b) return;
+    var face = b.getAttribute('data-set');
+    if(face === 'kai' && !kaiLoaded){
+      var l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = 'https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.7.0/style.css';
+      document.head.appendChild(l);
+      kaiLoaded = true;
+    }
+    document.body.setAttribute('data-face', face);
+    Array.prototype.forEach.call(sw.querySelectorAll('button'), function(x){
+      x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
